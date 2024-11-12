@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"strconv"
+	"sync"
 	"time"
 
 	"google.golang.org/genproto/googleapis/rpc/status"
@@ -29,6 +30,7 @@ type authServer struct {
 	pb.UnimplementedAuthorizationServer
 	config   authz_config.Config
 	jwtCache authz_cache.JwtCache
+	mutex    sync.Mutex
 }
 
 func main() {
@@ -56,7 +58,7 @@ func main() {
 	cache := authz_cache.NewJwtCache()
 
 	grpcServer := grpc.NewServer()
-	pb.RegisterAuthorizationServer(grpcServer, &authServer{config: *loadedConfig, jwtCache: *cache})
+	pb.RegisterAuthorizationServer(grpcServer, &authServer{config: *loadedConfig, jwtCache: *cache, mutex: sync.Mutex{}})
 
 	// Enable gRPC reflection
 	reflection.Register(grpcServer)
@@ -83,21 +85,35 @@ func (a *authServer) Check(ctx context.Context, req *pb.CheckRequest) (*pb.Check
 	// Get the JWT token from the cache
 	identityToken, found := a.jwtCache.GetJwt(audience)
 	if !found {
-		// Get the identity token
-		start := time.Now()
-		newIdentityToken, err := authz_token.GetIdentityToken(&a.config, audience)
-		elapsed := time.Since(start)
-		authz_logger.DebugLog("GetIdentityToken took %s", elapsed)
+		// Lock to prevent multiple requests from getting the same token
+		// at the same time
+		// Not ideal, but it's a simple solution for now as lock is
+		// global and not per audience
+		a.mutex.Lock()
+		defer a.mutex.Unlock()
 
-		if err != nil {
-			log.Printf("Error getting identity token: %v", err)
-			response := createErrorResponse()
-			return response, nil
+		// Check the cache again
+		recheckIdentityToken, found := a.jwtCache.GetJwt(audience)
+		if found {
+			authz_logger.DebugLog("Found token in cache")
+			identityToken = recheckIdentityToken
+		} else {
+			// Get the identity token
+			start := time.Now()
+			newIdentityToken, err := authz_token.GetIdentityToken(&a.config, audience)
+			elapsed := time.Since(start)
+			authz_logger.DebugLog("GetIdentityToken took %s", elapsed)
+
+			if err != nil {
+				log.Printf("Error getting identity token: %v", err)
+				response := createErrorResponse()
+				return response, nil
+			}
+
+			authz_logger.DebugLog("Adding token to cache")
+			a.jwtCache.AddJwt(newIdentityToken)
+			identityToken = newIdentityToken
 		}
-
-		authz_logger.DebugLog("Adding token to cache")
-		a.jwtCache.AddJwt(newIdentityToken)
-		identityToken = newIdentityToken
 	} else {
 		authz_logger.DebugLog("Found token in cache")
 	}

@@ -15,13 +15,10 @@ import (
 	pb "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
 	envoy_type "github.com/envoyproxy/go-control-plane/envoy/type/v3"
 
+	authz_cache "authzgcpk8stokeninjector/internal/cache"
 	authz_config "authzgcpk8stokeninjector/internal/config"
 	authz_logger "authzgcpk8stokeninjector/internal/logger"
 	authz_token "authzgcpk8stokeninjector/internal/token"
-)
-
-var (
-	config authz_config.Config
 )
 
 const (
@@ -30,6 +27,8 @@ const (
 
 type authServer struct {
 	pb.UnimplementedAuthorizationServer
+	config   authz_config.Config
+	jwtCache authz_cache.JwtCache
 }
 
 func main() {
@@ -39,9 +38,7 @@ func main() {
 		log.Fatalf("Configuration error: %v", err)
 	}
 
-	config = *loadedConfig
-
-	port := config.Port
+	port := loadedConfig.Port
 
 	// Validate the port
 	portNum, err := strconv.Atoi(port)
@@ -55,8 +52,11 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
+	// Create a new cache
+	cache := authz_cache.NewJwtCache()
+
 	grpcServer := grpc.NewServer()
-	pb.RegisterAuthorizationServer(grpcServer, &authServer{})
+	pb.RegisterAuthorizationServer(grpcServer, &authServer{config: *loadedConfig, jwtCache: *cache})
 
 	// Enable gRPC reflection
 	reflection.Register(grpcServer)
@@ -80,16 +80,26 @@ func (a *authServer) Check(ctx context.Context, req *pb.CheckRequest) (*pb.Check
 		return response, nil
 	}
 
-	// Get the identity token
-	start := time.Now()
-	identityToken, err := authz_token.GetIdentityToken(&config, audience)
-	elapsed := time.Since(start)
-	authz_logger.DebugLog("GetIdentityToken took %s", elapsed)
+	// Get the JWT token from the cache
+	identityToken, found := a.jwtCache.GetJwt(audience)
+	if !found {
+		// Get the identity token
+		start := time.Now()
+		newIdentityToken, err := authz_token.GetIdentityToken(&a.config, audience)
+		elapsed := time.Since(start)
+		authz_logger.DebugLog("GetIdentityToken took %s", elapsed)
 
-	if err != nil {
-		log.Printf("Error getting identity token: %v", err)
-		response := createErrorResponse()
-		return response, nil
+		if err != nil {
+			log.Printf("Error getting identity token: %v", err)
+			response := createErrorResponse()
+			return response, nil
+		}
+
+		authz_logger.DebugLog("Adding token to cache")
+		a.jwtCache.AddJwt(newIdentityToken)
+		identityToken = newIdentityToken
+	} else {
+		authz_logger.DebugLog("Found token in cache")
 	}
 
 	response := &pb.CheckResponse{

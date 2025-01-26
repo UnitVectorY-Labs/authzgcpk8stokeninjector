@@ -1,8 +1,9 @@
 package cache
 
 import (
-	jwtparser "authzgcpk8stokeninjector/internal/jwt"
 	"time"
+
+	jwtparser "github.com/UnitVectorY-Labs/authzgcpk8stokeninjector/internal/jwt"
 )
 
 type JwtCache struct {

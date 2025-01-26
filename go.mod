@@ -1,4 +1,4 @@
-module authzgcpk8stokeninjector
+module github.com/UnitVectorY-Labs/authzgcpk8stokeninjector
 
 go 1.23.5
 

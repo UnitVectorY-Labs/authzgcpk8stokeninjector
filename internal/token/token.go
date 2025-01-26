@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"os"
 
-	authz_config "authzgcpk8stokeninjector/internal/config"
+	authz_config "github.com/UnitVectorY-Labs/authzgcpk8stokeninjector/internal/config"
 )
 
 const (

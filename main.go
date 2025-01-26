@@ -16,10 +16,10 @@ import (
 	pb "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
 	envoy_type "github.com/envoyproxy/go-control-plane/envoy/type/v3"
 
-	authz_cache "authzgcpk8stokeninjector/internal/cache"
-	authz_config "authzgcpk8stokeninjector/internal/config"
-	authz_logger "authzgcpk8stokeninjector/internal/logger"
-	authz_token "authzgcpk8stokeninjector/internal/token"
+	authz_cache "github.com/UnitVectorY-Labs/authzgcpk8stokeninjector/internal/cache"
+	authz_config "github.com/UnitVectorY-Labs/authzgcpk8stokeninjector/internal/config"
+	authz_logger "github.com/UnitVectorY-Labs/authzgcpk8stokeninjector/internal/logger"
+	authz_token "github.com/UnitVectorY-Labs/authzgcpk8stokeninjector/internal/token"
 )
 
 const (

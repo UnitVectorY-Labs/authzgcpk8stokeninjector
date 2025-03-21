@@ -4,7 +4,7 @@ go 1.24.1
 
 require (
 	github.com/envoyproxy/go-control-plane/envoy v1.32.4
-	github.com/golang-jwt/jwt/v4 v4.5.1
+	github.com/golang-jwt/jwt/v4 v4.5.2
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250115164207-1a7da9e5054f
 	google.golang.org/grpc v1.71.0
 )

@@ -3,7 +3,7 @@ module github.com/UnitVectorY-Labs/authzgcpk8stokeninjector
 go 1.26.0 // GOVERSION
 
 require (
-	github.com/envoyproxy/go-control-plane/envoy v1.36.0
+	github.com/envoyproxy/go-control-plane/envoy v1.37.0
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217
 	google.golang.org/grpc v1.79.1
@@ -16,5 +16,5 @@ require (
 	golang.org/x/net v0.48.0 // indirect
 	golang.org/x/sys v0.39.0 // indirect
 	golang.org/x/text v0.32.0 // indirect
-	google.golang.org/protobuf v1.36.10 // indirect
+	google.golang.org/protobuf v1.36.11 // indirect
 )

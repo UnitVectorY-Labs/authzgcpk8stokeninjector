@@ -6,7 +6,7 @@ A gRPC-based [ExtAuthz](https://www.envoyproxy.io/docs/envoy/latest/configuratio
 
 ## Overview
 
-The purpose of this service is to request JWT identity tokens from GCP using the service account configured in Kubernetes using [Workload Identity Federation](https://cloud.google.com/iam/docs/workload-identity-federation) and set the authoriztion bearer token to the request to backend services through the use of an Envoy Proxy ExtAuthz service.
+The purpose of this service is to request JWT identity tokens from GCP using the service account configured in Kubernetes using [Workload Identity Federation](https://cloud.google.com/iam/docs/workload-identity-federation) and set the authorization bearer token to the request to backend services through the use of an Envoy Proxy ExtAuthz service.
 
 This service is implemented in Go and is intended to run as a sidecar to the Envoy Proxy. It is configured to listen on a specific port, 50051 by default, for gRPC requests from the Envoy Proxy and then make requests to the OAuth 2.0 server to get the JWT token to inject into the request to the backend service.
 
@@ -74,7 +74,7 @@ route:
 metadata:
     filter_metadata:
     com.unitvectory.authzgcpk8stokeninjector:
-      target_audience: https://app.example.com
+      audience: https://app.example.com
 ```
 
 ## Configure Workload Identity Federation

@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	stsUrl                   = "https://sts.googleapis.com/v1/token"
-	workloadIdentityPattern  = "//iam.googleapis.com/projects/%s/locations/global/workloadIdentityPools/%s/providers/%s"
-	serviceAccountUrlPattern = "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/%s:generateIdToken"
+	defaultStsUrl                   = "https://sts.googleapis.com/v1/token"
+	workloadIdentityPattern         = "//iam.googleapis.com/projects/%s/locations/global/workloadIdentityPools/%s/providers/%s"
+	defaultServiceAccountUrlPattern = "https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/%s:generateIdToken"
 
 	// OAuth
 	grantType          = "urn:ietf:params:oauth:grant-type:token-exchange"
@@ -23,6 +23,26 @@ const (
 	requestedTokenType = "urn:ietf:params:oauth:token-type:access_token"
 	subjectTokenType   = "urn:ietf:params:oauth:token-type:jwt"
 )
+
+// Override variables for testing
+var (
+	stsUrlOverride                   string
+	serviceAccountUrlPatternOverride string
+)
+
+func getStsUrl() string {
+	if stsUrlOverride != "" {
+		return stsUrlOverride
+	}
+	return defaultStsUrl
+}
+
+func getServiceAccountUrlPattern() string {
+	if serviceAccountUrlPatternOverride != "" {
+		return serviceAccountUrlPatternOverride
+	}
+	return defaultServiceAccountUrlPattern
+}
 
 // STSRequest represents the request payload for STS token exchange
 type STSRequest struct {
@@ -96,7 +116,7 @@ func exchangeToken(config *authz_config.Config, subjectToken string) (string, er
 		return "", fmt.Errorf("failed to marshal STS request: %v", err)
 	}
 
-	resp, err := http.Post(stsUrl, "application/json", bytes.NewBuffer(body))
+	resp, err := http.Post(getStsUrl(), "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		return "", fmt.Errorf("failed to call STS: %v", err)
 	}
@@ -121,7 +141,7 @@ func exchangeToken(config *authz_config.Config, subjectToken string) (string, er
 
 // generateIdentityToken calls IAM to generate an identity token
 func generateIdentityToken(config *authz_config.Config, accessToken, audience string) (string, error) {
-	iamCredentialsURL := fmt.Sprintf(serviceAccountUrlPattern, config.ServiceAccountEmail)
+	iamCredentialsURL := fmt.Sprintf(getServiceAccountUrlPattern(), config.ServiceAccountEmail)
 
 	requestPayload := IAMRequest{
 		Audience:     audience,

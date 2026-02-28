@@ -16,6 +16,8 @@ type JwtInfo struct {
 	Jwt string
 	// The expiration time of the JWT
 	ExpirationTime time.Time
+	// The time the JWT was added to the cache
+	AddedAt time.Time
 }
 
 // NewJwtCache creates a new JwtCache
@@ -35,6 +37,7 @@ func (c *JwtCache) AddJwt(jwt string) {
 	c.JwtMap[aud] = JwtInfo{
 		Jwt:            jwt,
 		ExpirationTime: exp,
+		AddedAt:        time.Now(),
 	}
 }
 
@@ -46,9 +49,9 @@ func (c *JwtCache) GetJwt(audience string) (string, bool) {
 	}
 
 	// Check if the token is 75% expired
-	expirationDuration := time.Until(jwtInfo.ExpirationTime)
-	totalDuration := jwtInfo.ExpirationTime.Sub(time.Now().Add(-expirationDuration))
-	if expirationDuration <= totalDuration/4 {
+	totalDuration := jwtInfo.ExpirationTime.Sub(jwtInfo.AddedAt)
+	remainingDuration := time.Until(jwtInfo.ExpirationTime)
+	if remainingDuration <= totalDuration/4 {
 		return "", false
 	}
 

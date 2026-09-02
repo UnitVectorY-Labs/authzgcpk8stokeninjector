@@ -1,6 +1,6 @@
 module github.com/UnitVectorY-Labs/authzgcpk8stokeninjector
 
-go 1.26 // GOVERSION
+go 1.27 // GOVERSION
 
 require (
 	github.com/envoyproxy/go-control-plane/envoy v1.39.0

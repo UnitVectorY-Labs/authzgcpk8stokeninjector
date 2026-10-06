@@ -1,0 +1,12 @@
+name: authzgcpk8stokeninjector
+default_branch: main
+config:
+  description: "A gRPC-based [ExtAuthz](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/ext_authz_filter) service for [Envoy Proxy](https://www.envoyproxy.io/) for injecting GCP identity tokens into requests in Kubernetes environments."
+  license: MIT
+  language: go
+  release: docker-go
+  docker_port: 50051
+  release_github: true
+  status: active
+  codecov:
+    enabled: true

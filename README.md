@@ -37,6 +37,10 @@ metadata:
       audience: "https://app.example.com"
 ```
 
+## JSON behavior
+
+STS and IAM responses must contain a single JSON value with valid UTF-8 and no duplicate object names. Response field names are case-sensitive. Token requests use Go JSON v2 encoding, which does not escape HTML characters by default; their JSON meaning is unchanged.
+
 ## Token Caching
 
 To reduce the number of requests to the GCP OAuth 2.0 server, the service caches the JWT tokens and will reuse them. The token cache is stored in memory inside of this service.

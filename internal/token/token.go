@@ -2,7 +2,7 @@ package token
 
 import (
 	"bytes"
-	"encoding/json"
+	"encoding/json/v2"
 	"errors"
 	"fmt"
 	"io"
@@ -108,7 +108,7 @@ func exchangeToken(config *authz_config.Config, subjectToken string) (string, er
 	}
 
 	var stsResp STSResponse
-	if err := json.NewDecoder(resp.Body).Decode(&stsResp); err != nil {
+	if err := json.UnmarshalRead(resp.Body, &stsResp); err != nil {
 		return "", fmt.Errorf("failed to decode STS response: %v", err)
 	}
 
@@ -153,7 +153,7 @@ func generateIdentityToken(config *authz_config.Config, accessToken, audience st
 	}
 
 	var iamResp IAMResponse
-	if err := json.NewDecoder(resp.Body).Decode(&iamResp); err != nil {
+	if err := json.UnmarshalRead(resp.Body, &iamResp); err != nil {
 		return "", fmt.Errorf("failed to decode IAM response: %v", err)
 	}
 
